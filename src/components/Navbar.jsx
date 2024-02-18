@@ -11,10 +11,10 @@ import { toast } from "react-toastify";
 export default function ButtonAppBar() {
   const navigate = useNavigate();
 
-  const isLoggedIn = localStorage.getItem("isLoggedIn");
+  const isLoggedIn = localStorage.getItem("token");
 
   const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("token");
     toast.success("You are logged out!");
 
     navigate("/login");
