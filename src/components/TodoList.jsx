@@ -89,31 +89,25 @@ export default function Todo() {
   }, []);
 
   return (
-    <Container maxWidth="md" style={{ marginTop: 40 }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold">
-          My Tasks
-        </Typography>
-      </Box>
+    <Container maxWidth="md" sx={{ marginTop: "94px" }}>
+      <Typography variant="h4" fontWeight="bold" sx={{ textAlign: "center" }}>
+        My Tasks
+      </Typography>
       {tasks.length > 0 ? (
         tasks.map((task, index) => (
-          <Card key={index} style={{ marginTop: "1rem" }}>
+          <Card key={index} style={{ padding: "10px", margin: "14px" }}>
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: "start",
               }}
             >
-              <Typography variant="h6" sx={{ marginLeft: "14px" }}>
+              <Typography variant="h6" align="left" sx={{ marginLeft: "12px" }}>
                 {task.title
-                  ? task.title
+                  ? task.title.length > 64
+                    ? task.title.slice(0, 64) + "..."
+                    : task.title
                   : "No title was provided for this task"}
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -128,7 +122,8 @@ export default function Todo() {
             <Typography
               color="text.secondary"
               variant="body1"
-              style={{ marginTop: "8px" }}
+              align="left"
+              style={{ margin: "8px 12px" }}
             >
               {task.summary
                 ? task.summary
