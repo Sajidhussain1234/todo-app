@@ -2,8 +2,6 @@ import * as React from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
@@ -11,27 +9,55 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function SignIn() {
   const navigate = useNavigate();
+  const [formData, setFormData] = React.useState({
+    email: "",
+    password: "",
+  });
 
-  const handleSubmit = (event) => {
+  const [errors, setErrors] = React.useState({});
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    setErrors({ ...errors, [name]: "" });
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const email = data.get("email");
-    const password = data.get("password");
 
-    // Retrieving user credentials from localStorage
-    const storedEmail = localStorage.getItem("userEmail");
-    const storedPassword = localStorage.getItem("userPassword");
+    let errors = {};
+    if (!formData.email) {
+      errors.email = "Email is required";
+    }
+    if (!formData.password) {
+      errors.password = "Password is required";
+    }
 
-    // Checking if entered credentials match the stored credentials
-    if (email === storedEmail && password === storedPassword) {
-      // Redirecting user to home page
-      navigate("/home");
+    if (Object.keys(errors).length === 0) {
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/api/auth/login",
+          formData
+        );
+        if (response.status === 200) {
+          localStorage.setItem("isLoggedIn", "true");
+          navigate("/home");
+          toast.success("Login Successful");
+        } else {
+          console.log("Invalid credentials");
+          toast.error("Invalid credentials");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        toast.error("An error occurred");
+      }
     } else {
-      // Handle incorrect credentials
-      console.log("Invalid credentials");
+      setErrors(errors);
     }
   };
 
@@ -59,8 +85,10 @@ export default function SignIn() {
             id="email"
             label="Email Address"
             name="email"
-            autoComplete="email"
             autoFocus
+            onChange={handleChange}
+            error={!!errors.email}
+            helperText={errors.email}
           />
           <TextField
             margin="normal"
@@ -70,11 +98,9 @@ export default function SignIn() {
             label="Password"
             type="password"
             id="password"
-            autoComplete="current-password"
-          />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
+            onChange={handleChange}
+            error={!!errors.password}
+            helperText={errors.password}
           />
           <Button
             type="submit"
