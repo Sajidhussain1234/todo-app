@@ -1,7 +1,6 @@
 import * as React from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
-import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
@@ -11,8 +10,7 @@ import Container from "@mui/material/Container";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -63,14 +61,14 @@ export default function SignUp() {
 
       if (response.status === 200) {
         navigate("/login");
-        toast.success("Login Successful");
+        toast.success("Account created, please login now");
       } else {
         console.error("Failed to sign up");
-        toast.error("Invalid credentials");
+        toast.error("Failed to sign up");
       }
     } catch (error) {
       console.error("Error:", error);
-      toast.error("An error occurred");
+      toast.error("Invalid credentials");
     }
   };
 

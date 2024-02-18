@@ -45,16 +45,17 @@ export default function SignIn() {
           formData
         );
         if (response.status === 200) {
-          localStorage.setItem("isLoggedIn", "true");
+          localStorage.setItem("token", response.data.authToken);
+
           navigate("/home");
           toast.success("Login Successful");
         } else {
-          console.log("Invalid credentials");
-          toast.error("Invalid credentials");
+          console.error("An error occurred");
+          toast.error("An error occurred");
         }
       } catch (error) {
         console.error("Error:", error);
-        toast.error("An error occurred");
+        toast.error("Invalid credentials");
       }
     } else {
       setErrors(errors);

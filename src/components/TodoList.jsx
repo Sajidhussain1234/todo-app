@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Container,
@@ -9,79 +9,147 @@ import {
   IconButton,
   Card,
 } from "@mui/material";
-import { styled } from "@mui/system";
 import { Delete, Edit } from "@mui/icons-material";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-const ActionIcon = styled(IconButton)(({ theme }) => ({
-  color: theme.palette.primary.main,
-}));
+const ActionIcon = IconButton;
 
-export default function Todo() {
+export default function TodoList() {
   const [tasks, setTasks] = useState([]);
   const [opened, setOpened] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskSummary, setTaskSummary] = useState("");
 
-  const taskTitle = useRef("");
-  const taskSummary = useRef("");
+  const token = localStorage.getItem("token");
 
-  function createTask() {
-    setTasks((prevTasks) => [
-      ...prevTasks,
-      {
-        title: taskTitle.current.value,
-        summary: taskSummary.current.value,
-      },
-    ]);
-
-    saveTasks([
-      ...tasks,
-      {
-        title: taskTitle.current.value,
-        summary: taskSummary.current.value,
-      },
-    ]);
-    setOpened(false);
-  }
-
-  function deleteTask(index) {
-    const clonedTasks = [...tasks];
-    clonedTasks.splice(index, 1);
-    setTasks(clonedTasks);
-    saveTasks(clonedTasks);
-  }
-
-  function loadTasks() {
-    const loadedTasks = localStorage.getItem("tasks");
-    const parsedTasks = JSON.parse(loadedTasks);
-    if (parsedTasks) {
-      setTasks(parsedTasks);
+  //Task Creation
+  async function createTask() {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/task/createtask",
+        {
+          title: taskTitle,
+          summary: taskSummary,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            atoken: token,
+          },
+        }
+      );
+      setTasks([...tasks, response.data]);
+      toast.success("Task created successfully");
+      setTaskTitle("");
+      setTaskSummary("");
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setOpened(false);
     }
   }
 
-  function saveTasks(tasksToSave) {
-    localStorage.setItem("tasks", JSON.stringify(tasksToSave));
+  //Task Deletion
+  async function deleteTask(taskId) {
+    try {
+      await axios.delete(
+        `http://localhost:8000/api/task/deletetask/${taskId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            atoken: token,
+          },
+        }
+      );
+      const updatedTasks = tasks.filter((task) => task._id !== taskId);
+      setTasks(updatedTasks);
+      toast.success("Task deleted successfully");
+    } catch (error) {
+      console.error("Error:", error);
+    }
   }
 
-  function editTask(index) {
-    const taskToEdit = tasks[index];
-    setEditingTask({ ...taskToEdit, index });
+  function editTask(task) {
+    setEditingTask(task);
+    setTaskTitle(task.title);
+    setTaskSummary(task.summary);
     setOpened(true);
   }
 
-  function updateTask() {
-    const updatedTasks = tasks.map((task, index) =>
-      index === editingTask.index
-        ? {
-            ...task,
-            title: taskTitle.current.value,
-            summary: taskSummary.current.value,
-          }
-        : task
-    );
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-    setOpened(false);
-    setEditingTask(null);
+  //Task Updation
+  async function updateTask() {
+    try {
+      await axios.put(
+        `http://localhost:8000/api/task/updatetask/${editingTask._id}`,
+        {
+          title: taskTitle,
+          summary: taskSummary,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            atoken: token,
+          },
+        }
+      );
+      const updatedTasks = tasks.map((task) =>
+        task._id === editingTask._id
+          ? { ...task, title: taskTitle, summary: taskSummary }
+          : task
+      );
+      setTasks(updatedTasks);
+      toast.success("Task updated successfully");
+      setEditingTask(null);
+      setTaskTitle("");
+      setTaskSummary("");
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setOpened(false);
+    }
+  }
+
+  //Task Status Update
+  async function handleStatus(taskId) {
+    try {
+      await axios.put(
+        `http://localhost:8000/api/task/updatetaskstatus/${taskId}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            atoken: token,
+          },
+        }
+      );
+      const updatedTasks = tasks.map((task) =>
+        task._id === taskId ? { ...task, status: "completed" } : task
+      );
+      setTasks(updatedTasks);
+      toast.success("Task status updated successfully");
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  }
+
+  //All Tasks load
+  async function loadTasks() {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/api/task/fetchalltasks",
+        {
+          headers: {
+            "Content-Type": "application/json",
+            atoken: token,
+          },
+        }
+      );
+      setTasks(response.data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
   }
 
   useEffect(() => {
@@ -94,8 +162,8 @@ export default function Todo() {
         My Tasks
       </Typography>
       {tasks.length > 0 ? (
-        tasks.map((task, index) => (
-          <Card key={index} style={{ padding: "10px", margin: "14px" }}>
+        tasks.map((task) => (
+          <Card key={task._id} style={{ padding: "10px", margin: "14px" }}>
             <Box
               sx={{
                 display: "flex",
@@ -104,17 +172,13 @@ export default function Todo() {
               }}
             >
               <Typography variant="h6" align="left" sx={{ marginLeft: "12px" }}>
-                {task.title
-                  ? task.title.length > 64
-                    ? task.title.slice(0, 64) + "..."
-                    : task.title
-                  : "No title was provided for this task"}
+                {task.title}
               </Typography>
               <Box sx={{ display: "flex", alignItems: "center" }}>
-                <ActionIcon onClick={() => editTask(index)}>
+                <ActionIcon onClick={() => editTask(task)}>
                   <Edit />
                 </ActionIcon>
-                <ActionIcon onClick={() => deleteTask(index)}>
+                <ActionIcon onClick={() => deleteTask(task._id)}>
                   <Delete />
                 </ActionIcon>
               </Box>
@@ -125,10 +189,35 @@ export default function Todo() {
               align="left"
               style={{ margin: "8px 12px" }}
             >
-              {task.summary
-                ? task.summary
-                : "No summary was provided for this task"}
+              {task.summary}
             </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "start",
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{
+                  textAlign: "center",
+                  textTransform: "capitalize",
+                  color: task.status === "pending" ? "warning.main" : "green",
+                }}
+              >
+                {task.status}
+              </Typography>
+              {task.status === "completed" ? null : (
+                <Button
+                  onClick={() => handleStatus(task._id)}
+                  variant="contained"
+                  color="primary"
+                >
+                  Mark Completed
+                </Button>
+              )}
+            </Box>
           </Card>
         ))
       ) : (
@@ -171,8 +260,8 @@ export default function Todo() {
         >
           <TextField
             fullWidth
-            inputRef={taskTitle}
-            defaultValue={editingTask?.title || ""}
+            value={taskTitle}
+            onChange={(e) => setTaskTitle(e.target.value)}
             placeholder="Task Title"
             label="Title"
             variant="outlined"
@@ -180,8 +269,8 @@ export default function Todo() {
           />
           <TextField
             fullWidth
-            inputRef={taskSummary}
-            defaultValue={editingTask?.summary || ""}
+            value={taskSummary}
+            onChange={(e) => setTaskSummary(e.target.value)}
             placeholder="Task Summary"
             label="Summary"
             variant="outlined"
