@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import axios from "axios";
+import { BASE_URL } from "../constants";
 import { toast } from "react-toastify";
 
 const ActionIcon = IconButton;
@@ -21,6 +22,7 @@ export default function TodoList() {
   const [editingTask, setEditingTask] = useState(null);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskSummary, setTaskSummary] = useState("");
+  console.log("base", BASE_URL);
 
   const token = localStorage.getItem("token");
 
@@ -28,7 +30,7 @@ export default function TodoList() {
   async function createTask() {
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/task/createtask",
+        `${BASE_URL}/api/task/createtask`,
         {
           title: taskTitle,
           summary: taskSummary,
@@ -54,15 +56,12 @@ export default function TodoList() {
   //Task Deletion
   async function deleteTask(taskId) {
     try {
-      await axios.delete(
-        `http://localhost:8000/api/task/deletetask/${taskId}`,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            atoken: token,
-          },
-        }
-      );
+      await axios.delete(`${BASE_URL}/api/task/deletetask/${taskId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          atoken: token,
+        },
+      });
       const updatedTasks = tasks.filter((task) => task._id !== taskId);
       setTasks(updatedTasks);
       toast.success("Task deleted successfully");
@@ -82,7 +81,7 @@ export default function TodoList() {
   async function updateTask() {
     try {
       await axios.put(
-        `http://localhost:8000/api/task/updatetask/${editingTask._id}`,
+        `${BASE_URL}/api/task/updatetask/${editingTask._id}`,
         {
           title: taskTitle,
           summary: taskSummary,
@@ -115,7 +114,7 @@ export default function TodoList() {
   async function handleStatus(taskId) {
     try {
       await axios.put(
-        `http://localhost:8000/api/task/updatetaskstatus/${taskId}`,
+        `${BASE_URL}/api/task/updatetaskstatus/${taskId}`,
         {},
         {
           headers: {
@@ -137,16 +136,13 @@ export default function TodoList() {
   //All Tasks load
   async function loadTasks() {
     try {
-      const response = await axios.get(
-        "http://localhost:8000/api/task/fetchalltasks",
-        {
-          headers: {
-            "Content-Type": "application/json",
-            atoken: token,
-          },
-        }
-      );
-      setTasks(response.data);
+      const response = await axios.get(`${BASE_URL}/api/task/fetchalltasks`, {
+        headers: {
+          "Content-Type": "application/json",
+          atoken: token,
+        },
+      });
+      setTasks(response.data.reverse());
     } catch (error) {
       console.error("Error:", error);
     }
@@ -154,13 +150,25 @@ export default function TodoList() {
 
   useEffect(() => {
     loadTasks();
-  }, []);
+  }, [tasks]);
 
   return (
     <Container maxWidth="md" sx={{ marginTop: "94px" }}>
       <Typography variant="h4" fontWeight="bold" sx={{ textAlign: "center" }}>
         My Tasks
       </Typography>
+      <Button
+        onClick={() => {
+          setEditingTask(null);
+          setOpened(true);
+        }}
+        fullWidth
+        variant="contained"
+        color="primary"
+        sx={{ marginTop: "14px" }}
+      >
+        Create New Task
+      </Button>
       {tasks.length > 0 ? (
         tasks.map((task) => (
           <Card key={task._id} style={{ padding: "10px", margin: "14px" }}>
@@ -223,23 +231,15 @@ export default function TodoList() {
       ) : (
         <Typography
           variant="body1"
-          style={{ marginTop: "16px", color: "text.secondary" }}
+          style={{
+            marginTop: "16px",
+            color: "text.secondary",
+            textAlign: "center",
+          }}
         >
           You have no tasks
         </Typography>
       )}
-      <Button
-        onClick={() => {
-          setEditingTask(null);
-          setOpened(true);
-        }}
-        fullWidth
-        variant="contained"
-        color="primary"
-        sx={{ marginTop: "14px" }}
-      >
-        Create Task
-      </Button>
       <Modal
         open={opened}
         onClose={() => setOpened(false)}
@@ -281,6 +281,7 @@ export default function TodoList() {
               Cancel
             </Button>
             <Button
+              disabled={!taskTitle.trim() || !taskSummary.trim()}
               onClick={editingTask ? updateTask : createTask}
               variant="contained"
               color="primary"
