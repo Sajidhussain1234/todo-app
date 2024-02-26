@@ -11,7 +11,9 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { BASE_URL } from "../constants";
 import { useDispatch } from "react-redux";
+import { loginSuccess } from "../store/slices/authSlice";
 
 export default function SignIn() {
   const dispatch = useDispatch();
@@ -44,11 +46,12 @@ export default function SignIn() {
     if (Object.keys(errors).length === 0) {
       try {
         const response = await axios.post(
-          "http://localhost:8000/api/auth/login",
+          `${BASE_URL}/api/auth/login`,
           formData
         );
         if (response.status === 200) {
           localStorage.setItem("token", response.data.authToken);
+          dispatch(loginSuccess(response.data.authToken));
 
           navigate("/home");
           toast.success("Login Successful");

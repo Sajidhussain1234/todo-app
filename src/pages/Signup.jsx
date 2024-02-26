@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { BASE_URL } from "../constants";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ export default function SignUp() {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/auth/createuser",
+        `${BASE_URL}/api/auth/createuser`,
         formData,
         {
           headers: {

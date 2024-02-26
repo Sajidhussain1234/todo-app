@@ -7,14 +7,19 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { logout } from "../store/slices/authSlice";
 
 export default function ButtonAppBar() {
+  const dispatch = useDispatch();
+
   const navigate = useNavigate();
 
   const isLoggedIn = localStorage.getItem("token");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    dispatch(logout());
     toast.success("You are logged out!");
 
     navigate("/login");

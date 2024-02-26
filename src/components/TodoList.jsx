@@ -22,7 +22,6 @@ export default function TodoList() {
   const [editingTask, setEditingTask] = useState(null);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskSummary, setTaskSummary] = useState("");
-  console.log("base", BASE_URL);
 
   const token = localStorage.getItem("token");
 
