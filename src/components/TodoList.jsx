@@ -13,6 +13,7 @@ import { Delete, Edit } from "@mui/icons-material";
 import axios from "axios";
 import { BASE_URL } from "../constants";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 
 const ActionIcon = IconButton;
 
@@ -23,7 +24,7 @@ export default function TodoList() {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskSummary, setTaskSummary] = useState("");
 
-  const token = localStorage.getItem("token");
+  const authToken = useSelector((state) => state.auth.authToken);
 
   //Task Creation
   async function createTask() {
@@ -37,11 +38,11 @@ export default function TodoList() {
         {
           headers: {
             "Content-Type": "application/json",
-            atoken: token,
+            atoken: authToken,
           },
         }
       );
-      setTasks([...tasks, response.data]);
+      setTasks([response.data, ...tasks]);
       toast.success("Task created successfully");
       setTaskTitle("");
       setTaskSummary("");
@@ -58,7 +59,7 @@ export default function TodoList() {
       await axios.delete(`${BASE_URL}/api/task/deletetask/${taskId}`, {
         headers: {
           "Content-Type": "application/json",
-          atoken: token,
+          atoken: authToken,
         },
       });
       const updatedTasks = tasks.filter((task) => task._id !== taskId);
@@ -88,7 +89,7 @@ export default function TodoList() {
         {
           headers: {
             "Content-Type": "application/json",
-            atoken: token,
+            atoken: authToken,
           },
         }
       );
@@ -118,7 +119,7 @@ export default function TodoList() {
         {
           headers: {
             "Content-Type": "application/json",
-            atoken: token,
+            atoken: authToken,
           },
         }
       );
@@ -138,7 +139,7 @@ export default function TodoList() {
       const response = await axios.get(`${BASE_URL}/api/task/fetchalltasks`, {
         headers: {
           "Content-Type": "application/json",
-          atoken: token,
+          atoken: authToken,
         },
       });
       setTasks(response.data.reverse());
@@ -149,7 +150,7 @@ export default function TodoList() {
 
   useEffect(() => {
     loadTasks();
-  }, [tasks]);
+  }, []);
 
   return (
     <Container maxWidth="md" sx={{ marginTop: "94px" }}>

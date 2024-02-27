@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useState } from "react";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
@@ -16,15 +16,14 @@ import { useDispatch } from "react-redux";
 import { loginSuccess } from "../store/slices/authSlice";
 
 export default function SignIn() {
+  const [errors, setErrors] = useState({});
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
+
   const [formData, setFormData] = React.useState({
     email: "",
     password: "",
   });
-
-  const [errors, setErrors] = React.useState({});
 
   const handleChange = (e) => {
     const { name, value } = e.target;
