@@ -7,15 +7,13 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../store/slices/authSlice";
 
 export default function ButtonAppBar() {
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
-
-  const isLoggedIn = localStorage.getItem("token");
+  const isAuthenticated = useSelector((state) => state.auth.authToken);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -31,7 +29,7 @@ export default function ButtonAppBar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Todo App
           </Typography>
-          {isLoggedIn ? (
+          {isAuthenticated ? (
             <Button
               color="inherit"
               sx={{ m: 0.5, fontWeight: "bold" }}
